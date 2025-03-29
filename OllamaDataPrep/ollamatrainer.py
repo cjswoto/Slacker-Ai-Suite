@@ -37,7 +37,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("OllamaTrainer")
 
 # Global constant: Directory where the fine-tuned model will be saved
-FINE_TUNED_DIR = "./fine-tuned-model"
+FINE_TUNED_DIR = "../fine-tuned-model"
 
 
 class TokenizedTextDataset(Dataset):

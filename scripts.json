@@ -1,0 +1,58 @@
+[
+  {
+    "App Name": "CUDA Installation Wizard",
+    "Script": "CUDAWizard.py",
+    "Description": "Acts as a CUDA Installation Wizard. Checks for CUDA, and if not detected, guides the user through downloading and installing the CUDA Toolkit.",
+    "Author": "CJS",
+    "Version": "v1.0"
+  },
+  {
+    "App Name": "Ollama Setup Wizard",
+    "Script": "OllamaWizard.py",
+    "Description": "Implements a setup wizard for Ollama, a local AI inference platform. Checks system prerequisites, verifies installation and running status, and guides the user through model downloads and configuration.",
+    "Author": "CJS",
+    "Version": "v1.0"
+  },
+  {
+    "App Name": "Ollama Data Preparation",
+    "Script": "ollamadataprep.py",
+    "Description": "A modern GUI app for converting raw document data into structured datasets suitable for training. Supports multiple file types and exports the processed data in JSON Lines format.",
+    "Author": "CJS",
+    "Version": "v1.0"
+  },
+  {
+    "App Name": "PDF to Training Dataset",
+    "Script": "cuttrainfile.py",
+    "Description": "Offers a GUI for generating a training dataset from a PDF document by extracting text and prompting an AI model, then saving the generated dataset as JSON.",
+    "Author": "CJS",
+    "Version": "v1.0"
+  },
+  {
+    "App Name": "Ollama Model Trainer",
+    "Script": "ollamatrainer.py",
+    "Description": "Provides a production-grade GUI for fine-tuning open-source language models using quantization and LoRA techniques. Leverages PyTorch and Hugging Face Transformers for model training and conversion for deployment with Ollama.",
+    "Author": "CJS",
+    "Version": "v1.0"
+  },
+  {
+    "App Name": "Local KB Manager",
+    "Script": "kb_gui.py",
+    "Description": "Implements a tkinter-based GUI for managing a local knowledge base. Users can add files, view document metadata, and remove files, triggering re-indexing as needed.",
+    "Author": "CJS",
+    "Version": "v1.0"
+  },
+  {
+    "App Name": "PDF Image Extractor",
+    "Script": "PDFMaster.py",
+    "Description": "Enables users to extract images from PDF documents using PyMuPDF. Offers PDF preview and options for extracting embedded images or saving full-page snapshots, displayed in a scrollable interface.",
+    "Author": "CJS",
+    "Version": "v1.0"
+  },
+  {
+    "App Name": "OllamaChat - Main GUI",
+    "Script": "chat_gui_main.py",
+    "Description": "Serves as the main chat GUI for the OllamaChat application. Integrates the chat interface, settings panel, and session panel while managing background tasks like model refreshing and server connection checks.",
+    "Author": "CJS",
+    "Version": "v1.0"
+  }
+]

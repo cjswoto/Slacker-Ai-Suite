@@ -1,0 +1,13 @@
+{
+  "id": "session_20250322180033",
+  "title": "Session 2025-03-22 18:00",
+  "model": "",
+  "messages": [
+    {
+      "role": "assistant",
+      "content": "\nThe plug-in \"MrTS_Crafting\" allows for item crafting in RPG Maker MV games. It enables players to create items by combining different materials with specific amounts and disciplines required.\n\nThe plugin's parameters include:\n\n* Required Levels: Whether or not to display the recipe required levels to craft it.\n* Gauge Color 1, Gauge Color 2, and Category Color: Colors used for the discipline exp gauge and categories in the crafting menu.\n\nThe plugin's file structure is as follows:\n\n[null, object, object, ..., object]\n\n* ID: A unique identifier for each recipe.\n* Name: The name of the recipe that appears in the crafting window.\n* IconIndex: The icon used for the recipe.\n* Result: An array of items and their amounts that result from crafting this recipe.\n* Requires: An array of items and their amounts required to craft this recipe.\n* Discipline: The discipline associated with this recipe.\n* Category: The categories under which the recipe will be displayed in the crafting menu."
+    }
+  ],
+  "created_at": "2025-03-22 18:00:33",
+  "updated_at": "2025-03-22 18:00:58"
+}

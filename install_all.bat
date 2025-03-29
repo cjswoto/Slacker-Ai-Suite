@@ -6,3 +6,4 @@ pip3 install torch torchvision torchaudio --index-url https://download.pytorch.o
 
 # Install transformers and other dependencies
 pip install transformers datasets peft
+pip install PyMuPDF
