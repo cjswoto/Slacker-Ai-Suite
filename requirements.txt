@@ -1,0 +1,18 @@
+torch>=2.0.0
+torchvision
+torchaudio
+transformers>=4.49.0
+datasets>=2.10.0
+peft>=0.3.0
+bitsandbytes  # Alternative quantization method
+PyPDF2
+ttkbootstrap
+pdfminer
+pdfminer.six
+ttkbootstrap
+pandas
+pdfminer.six
+python-docx
+textract
+openpyxl
+six
