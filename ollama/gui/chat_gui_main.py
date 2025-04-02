@@ -70,22 +70,27 @@ class OllamaApp:
         # Optionally update a status indicator here.
 
     def process_message(self, user_input):
+        # Start the animated progress indicator.
+        self.chat_interface.start_progress_indicator("Generating response")
+
         def task():
             with_search = True
             response_data = self.core_manager.generate_response(user_input, with_search=with_search)
             if response_data.get("success"):
                 response = response_data.get("ai_response", "")
-                self.chat_interface.display_message("🤖 AI", response, tag="ai")
+                self.root.after(0, lambda: self.chat_interface.display_message("🤖 AI", response, tag="ai"))
                 self.core_manager.store_message_in_session("assistant", response)
             else:
                 error = response_data.get("error", "Unknown error")
-                self.chat_interface.display_error(error)
+                self.root.after(0, lambda: self.chat_interface.display_error(error))
             # Display web debug info if enabled.
             if self.core_manager.search_debug_info and self.core_manager.show_web_debug:
-                self.chat_interface.display_search_info(self.core_manager.search_debug_info)
+                self.root.after(0, lambda: self.chat_interface.display_search_info(self.core_manager.search_debug_info))
             # Display KB debug info if available and enabled.
             if response_data.get("kb_debug_info") and self.core_manager.show_kb_debug:
-                self.chat_interface.display_search_info(response_data.get("kb_debug_info"))
+                self.root.after(0, lambda: self.chat_interface.display_search_info(response_data.get("kb_debug_info")))
+            # Stop the progress indicator once processing is done.
+            self.root.after(0, self.chat_interface.stop_progress_indicator)
         threading.Thread(target=task, daemon=True).start()
 
     def new_session(self):

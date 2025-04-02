@@ -49,10 +49,10 @@ class ChatInterface:
         self.chat_display.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         self.chat_display.config(state=tk.DISABLED)
 
-        # Progress label.
+        # Progress frame (area with the red line).
         self.progress_frame = ttk.Frame(self.frame)
         self.progress_frame.pack(fill=tk.X, pady=(0, 5))
-        self.progress_label = ttk.Label(self.progress_frame, text="", font=("Segoe UI", 9))
+        self.progress_label = ttk.Label(self.progress_frame, text="", font=("Segoe UI", 9), foreground="red")
         self.progress_label.pack(anchor=tk.W, side=tk.LEFT)
 
         # Message input.
@@ -157,3 +157,24 @@ class ChatInterface:
 
     def set_progress_text(self, text):
         self.progress_label.config(text=text)
+
+    # --- New Progress Indicator Methods ---
+
+    def start_progress_indicator(self, text="Working"):
+        self._progress_running = True
+        self._progress_text = text
+        self._progress_idx = 0
+        self._spinner_chars = ["|", "/", "-", "\\"]
+        self._animate_progress()
+
+    def _animate_progress(self):
+        if not self._progress_running:
+            return
+        spinner = self._spinner_chars[self._progress_idx % len(self._spinner_chars)]
+        self.set_progress_text(f"{self._progress_text}... {spinner}")
+        self._progress_idx += 1
+        self.parent.after(200, self._animate_progress)
+
+    def stop_progress_indicator(self):
+        self._progress_running = False
+        self.set_progress_text("")
