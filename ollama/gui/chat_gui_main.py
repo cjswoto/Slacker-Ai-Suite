@@ -9,6 +9,7 @@ from ollama.core.core_manager import CoreManager
 from ollama.gui.chat_interface import ChatInterface
 from ollama.gui.settings_panel import SettingsPanel
 from ollama.gui.session_panel import SessionPanel
+from tkinter import filedialog
 
 class OllamaApp:
     def __init__(self, root):
@@ -16,41 +17,33 @@ class OllamaApp:
         self.root.title("OllamaChat - Local LLM Interface")
         self.root.geometry("1200x800")
 
-        # Create CoreManager instance.
         self.core_manager = CoreManager()
-        # Set default debug flags (initially both off).
         self.core_manager.show_web_debug = False
         self.core_manager.show_kb_debug = False
 
-        # Create a PanedWindow to split chat and settings.
         self.paned = tb.PanedWindow(self.root, orient=tk.HORIZONTAL)
         self.paned.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-        # Chat area frame.
         self.chat_frame = tb.Frame(self.paned)
         self.paned.add(self.chat_frame, weight=3)
-        # Settings area frame.
         self.settings_frame = tb.Frame(self.paned)
         self.paned.add(self.settings_frame, weight=1)
 
-        # Create ChatInterface with required callbacks.
+        # Pass the image attachment and logging settings callbacks to ChatInterface.
         self.chat_interface = ChatInterface(
             self.chat_frame,
             self.process_message,
             self.new_session,
-            self.update_search_settings  # This callback receives three booleans.
+            self.update_search_settings,
+            self.update_logging_settings,
+            self.attach_image  # New callback that receives mode.
         )
 
-        # Create SettingsPanel.
         self.settings_panel = SettingsPanel(self.settings_frame, self.core_manager, self.refresh_models)
-
-        # Create SessionPanel.
         self.session_panel = SessionPanel(self.settings_frame, self.core_manager, self.on_session_change)
         self.session_panel.refresh_sessions()
 
-        # Start background tasks.
         self.root.after(100, self.start_background_tasks)
-        # New session at startup.
         self.new_session()
 
     def start_background_tasks(self):
@@ -67,12 +60,9 @@ class OllamaApp:
 
     def check_server_connection(self):
         is_connected = self.core_manager.check_server_connection()
-        # Optionally update a status indicator here.
 
     def process_message(self, user_input):
-        # Start the animated progress indicator.
         self.chat_interface.start_progress_indicator("Generating response")
-
         def task():
             with_search = True
             response_data = self.core_manager.generate_response(user_input, with_search=with_search)
@@ -83,13 +73,10 @@ class OllamaApp:
             else:
                 error = response_data.get("error", "Unknown error")
                 self.root.after(0, lambda: self.chat_interface.display_error(error))
-            # Display web debug info if enabled.
             if self.core_manager.search_debug_info and self.core_manager.show_web_debug:
                 self.root.after(0, lambda: self.chat_interface.display_search_info(self.core_manager.search_debug_info))
-            # Display KB debug info if available and enabled.
             if response_data.get("kb_debug_info") and self.core_manager.show_kb_debug:
                 self.root.after(0, lambda: self.chat_interface.display_search_info(response_data.get("kb_debug_info")))
-            # Stop the progress indicator once processing is done.
             self.root.after(0, self.chat_interface.stop_progress_indicator)
         threading.Thread(target=task, daemon=True).start()
 
@@ -98,13 +85,35 @@ class OllamaApp:
         self.session_panel.refresh_sessions()
 
     def on_session_change(self, session):
-        # Update the chat interface with session messages if desired.
+        # Optional: load session messages into chat display.
         pass
 
     def update_search_settings(self, web_search_enabled, show_web_debug, show_kb_debug):
         self.core_manager.web_search_enabled = web_search_enabled
         self.core_manager.show_web_debug = show_web_debug
         self.core_manager.show_kb_debug = show_kb_debug
+
+    def update_logging_settings(self, logging_enabled, logging_level):
+        """
+        Callback to update logging settings from the front end.
+        :param logging_enabled: Boolean to enable/disable logging.
+        :param logging_level: Integer: 1, 2, or 3.
+        """
+        self.core_manager.set_logging_settings(logging_enabled, logging_level)
+
+    def attach_image(self, mode):
+        """Callback for image attachment. Opens a file dialog and processes the image using the selected mode."""
+        file_path = filedialog.askopenfilename(
+            title="Select Image",
+            filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.bmp")]
+        )
+        if file_path:
+            if mode == "OCR":
+                caption = self.core_manager.generate_image_text(file_path)
+            else:
+                caption = self.core_manager.generate_image_caption(file_path)
+            return caption
+        return None
 
 if __name__ == "__main__":
     root = tb.Window(themename="darkly")

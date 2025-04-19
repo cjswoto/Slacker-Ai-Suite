@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext, ttk
+from tkinter import scrolledtext, ttk, filedialog
 
 class ChatInterface:
     def __init__(
@@ -7,36 +7,43 @@ class ChatInterface:
         parent,
         on_send_callback,
         on_new_session_callback,
-        on_update_search_settings_callback
+        on_update_search_settings_callback,
+        on_update_logging_settings_callback,
+        on_attach_image_callback=None
     ):
         """
         :param parent: The parent widget/frame.
         :param on_send_callback: function(user_text) -> None.
         :param on_new_session_callback: function() -> None.
         :param on_update_search_settings_callback: function(bool, bool, bool) -> None.
-            (Parameters: web_search_enabled, show_web_debug, show_kb_debug)
+        :param on_update_logging_settings_callback: function(bool, int) -> None.
+        :param on_attach_image_callback: function(mode) -> image_text (string) or None.
         """
         self.parent = parent
         self.on_send_callback = on_send_callback
         self.on_new_session_callback = on_new_session_callback
         self.on_update_search_settings_callback = on_update_search_settings_callback
+        self.on_update_logging_settings_callback = on_update_logging_settings_callback
+        self.on_attach_image_callback = on_attach_image_callback
 
-        # Variables for checkboxes.
+        self.attached_image_caption = None
+
         self.web_search_enabled = tk.BooleanVar(value=True)
         self.show_web_debug = tk.BooleanVar(value=False)
         self.show_kb_debug = tk.BooleanVar(value=False)
 
-        # Main frame.
+        # New variables for logging settings using numeric values.
+        self.logging_enabled = tk.BooleanVar(value=True)
+        self.logging_level = tk.IntVar(value=1)  # Options: 1, 2, or 3
+
         self.frame = ttk.Frame(self.parent)
         self.frame.pack(fill=tk.BOTH, expand=True)
 
-        # Label: "Conversation".
         self.chat_label = ttk.Label(
             self.frame, text="🗨️ Conversation", font=("Segoe UI", 12, "bold")
         )
         self.chat_label.pack(anchor=tk.W, pady=(0, 5))
 
-        # Chat display.
         self.chat_display = scrolledtext.ScrolledText(
             self.frame,
             wrap=tk.WORD,
@@ -49,13 +56,11 @@ class ChatInterface:
         self.chat_display.pack(fill=tk.BOTH, expand=True, pady=(0, 10))
         self.chat_display.config(state=tk.DISABLED)
 
-        # Progress frame (area with the red line).
         self.progress_frame = ttk.Frame(self.frame)
         self.progress_frame.pack(fill=tk.X, pady=(0, 5))
         self.progress_label = ttk.Label(self.progress_frame, text="", font=("Segoe UI", 9), foreground="red")
         self.progress_label.pack(anchor=tk.W, side=tk.LEFT)
 
-        # Message input.
         self.message_input = scrolledtext.ScrolledText(
             self.frame,
             height=4,
@@ -69,11 +74,22 @@ class ChatInterface:
         self.message_input.bind("<Return>", self.handle_return_key)
         self.message_input.bind("<Shift-Return>", lambda e: None)
 
-        # Bottom button/checkbox row.
         button_frame = ttk.Frame(self.frame)
         button_frame.pack(fill=tk.X)
 
-        # "Enable Web Search" checkbox.
+        # Attach Image button.
+        self.attach_image_button = ttk.Button(
+            button_frame,
+            text="Attach Image 🖼️",
+            command=self.attach_image
+        )
+        self.attach_image_button.pack(side=tk.LEFT, padx=5)
+
+        # Mode selector for image processing.
+        self.image_mode_combo = ttk.Combobox(button_frame, values=[1, 2], width=10)
+        self.image_mode_combo.set(1)  # Default mode (1 for Captioning, 2 for OCR)
+        self.image_mode_combo.pack(side=tk.LEFT, padx=5)
+
         self.web_search_checkbox = ttk.Checkbutton(
             button_frame,
             text="Enable Web Search",
@@ -83,7 +99,6 @@ class ChatInterface:
         )
         self.web_search_checkbox.pack(side=tk.LEFT)
 
-        # "Show Web Debug Info" checkbox.
         self.web_debug_checkbox = ttk.Checkbutton(
             button_frame,
             text="Show Web Debug Info",
@@ -93,7 +108,6 @@ class ChatInterface:
         )
         self.web_debug_checkbox.pack(side=tk.LEFT, padx=10)
 
-        # "Show KB Debug Info" checkbox.
         self.kb_debug_checkbox = ttk.Checkbutton(
             button_frame,
             text="Show KB Debug Info",
@@ -103,7 +117,26 @@ class ChatInterface:
         )
         self.kb_debug_checkbox.pack(side=tk.LEFT, padx=10)
 
-        # "Send" button.
+        # New controls for logging settings using numeric levels.
+        self.logging_checkbox = ttk.Checkbutton(
+            button_frame,
+            text="Enable Logging",
+            variable=self.logging_enabled,
+            style="warning.TCheckbutton",
+            command=self.update_logging_settings
+        )
+        self.logging_checkbox.pack(side=tk.LEFT, padx=10)
+
+        self.logging_level_combo = ttk.Combobox(
+            button_frame,
+            values=[1, 2, 3],
+            textvariable=self.logging_level,
+            width=5
+        )
+        self.logging_level_combo.set(1)
+        self.logging_level_combo.bind("<<ComboboxSelected>>", lambda e: self.update_logging_settings())
+        self.logging_level_combo.pack(side=tk.LEFT, padx=5)
+
         self.send_button = ttk.Button(
             button_frame,
             text="Send 📤",
@@ -112,7 +145,6 @@ class ChatInterface:
         )
         self.send_button.pack(side=tk.RIGHT)
 
-        # "New Session" button.
         self.new_session_button = ttk.Button(
             button_frame,
             text="New Session 🗒️",
@@ -129,19 +161,36 @@ class ChatInterface:
 
     def send_message(self):
         user_input = self.message_input.get("1.0", tk.END).strip()
-        if not user_input:
+        if not user_input and not self.attached_image_caption:
             return
+        if self.attached_image_caption:
+            user_input = f"Image Context: {self.attached_image_caption}\n{user_input}"
+            self.attached_image_caption = None
         self.message_input.delete("1.0", tk.END)
         self.display_message("🧑 You", user_input, tag="user")
         self.on_send_callback(user_input)
 
     def update_search_settings(self):
-        # Pass the current checkbox states to the callback.
         self.on_update_search_settings_callback(
             self.web_search_enabled.get(),
             self.show_web_debug.get(),
             self.show_kb_debug.get()
         )
+
+    def update_logging_settings(self):
+        self.on_update_logging_settings_callback(
+            self.logging_enabled.get(),
+            self.logging_level.get()
+        )
+
+    def attach_image(self):
+        """Callback for Attach Image: uses selected mode (1 for Captioning, 2 for OCR)."""
+        mode = int(self.image_mode_combo.get())
+        if self.on_attach_image_callback:
+            caption = self.on_attach_image_callback("OCR" if mode == 2 else "Captioning")
+            if caption:
+                self.attached_image_caption = caption
+                self.display_message("🖼️ Image", f"Attached image ({'OCR' if mode == 2 else 'Captioning'}): {caption}", tag="image")
 
     def display_message(self, sender, message, tag=None):
         self.chat_display.config(state=tk.NORMAL)
@@ -157,8 +206,6 @@ class ChatInterface:
 
     def set_progress_text(self, text):
         self.progress_label.config(text=text)
-
-    # --- New Progress Indicator Methods ---
 
     def start_progress_indicator(self, text="Working"):
         self._progress_running = True
