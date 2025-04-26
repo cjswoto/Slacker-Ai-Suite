@@ -1,8 +1,12 @@
+# chat_gui_main.py
+
 import tkinter as tk
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 import threading
-import sys, os
+import sys
+import os
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from ollama.core.core_manager import CoreManager
@@ -29,14 +33,13 @@ class OllamaApp:
         self.settings_frame = tb.Frame(self.paned)
         self.paned.add(self.settings_frame, weight=1)
 
-        # Pass the image attachment and logging settings callbacks to ChatInterface.
         self.chat_interface = ChatInterface(
             self.chat_frame,
             self.process_message,
             self.new_session,
             self.update_search_settings,
             self.update_logging_settings,
-            self.attach_image  # New callback that receives mode.
+            self.attach_image
         )
 
         self.settings_panel = SettingsPanel(self.settings_frame, self.core_manager, self.refresh_models)
@@ -59,34 +62,51 @@ class OllamaApp:
                 self.settings_panel.model_combo.set(models[0])
 
     def check_server_connection(self):
-        is_connected = self.core_manager.check_server_connection()
+        self.core_manager.check_server_connection()
 
     def process_message(self, user_input):
         self.chat_interface.start_progress_indicator("Generating response")
         def task():
-            with_search = True
-            response_data = self.core_manager.generate_response(user_input, with_search=with_search)
+            response_data = self.core_manager.generate_response(user_input, with_search=True)
             if response_data.get("success"):
-                response = response_data.get("ai_response", "")
-                self.root.after(0, lambda: self.chat_interface.display_message("🤖 AI", response, tag="ai"))
-                self.core_manager.store_message_in_session("assistant", response)
+                ai_resp = response_data.get("ai_response", "")
+                self.root.after(0, lambda: self.chat_interface.display_message("🤖 AI", ai_resp, tag="ai"))
+                self.core_manager.store_message_in_session("assistant", ai_resp)
             else:
-                error = response_data.get("error", "Unknown error")
-                self.root.after(0, lambda: self.chat_interface.display_error(error))
-            if self.core_manager.search_debug_info and self.core_manager.show_web_debug:
+                err = response_data.get("error", "Unknown error")
+                self.root.after(0, lambda: self.chat_interface.display_error(err))
+
+            if self.core_manager.show_web_debug and self.core_manager.search_debug_info:
                 self.root.after(0, lambda: self.chat_interface.display_search_info(self.core_manager.search_debug_info))
-            if response_data.get("kb_debug_info") and self.core_manager.show_kb_debug:
+            if self.core_manager.show_kb_debug and response_data.get("kb_debug_info"):
                 self.root.after(0, lambda: self.chat_interface.display_search_info(response_data.get("kb_debug_info")))
+
             self.root.after(0, self.chat_interface.stop_progress_indicator)
         threading.Thread(target=task, daemon=True).start()
 
     def new_session(self):
-        session_id = self.core_manager.new_session()
+        self.core_manager.new_session()
         self.session_panel.refresh_sessions()
 
     def on_session_change(self, session):
-        # Optional: load session messages into chat display.
-        pass
+        """
+        When a session is selected, clear the chat display and replay all stored messages.
+        """
+        # Clear existing chat display
+        self.chat_interface.chat_display.config(state=tk.NORMAL)
+        self.chat_interface.chat_display.delete("1.0", tk.END)
+
+        # Replay stored messages
+        for msg in session.get("messages", []):
+            role = msg.get("role")
+            content = msg.get("content", "")
+            if role == "user":
+                self.chat_interface.display_message("🧑 You", content, tag="user")
+            else:
+                self.chat_interface.display_message("🤖 AI", content, tag="ai")
+
+        # Lock display again
+        self.chat_interface.chat_display.config(state=tk.DISABLED)
 
     def update_search_settings(self, web_search_enabled, show_web_debug, show_kb_debug):
         self.core_manager.web_search_enabled = web_search_enabled
@@ -94,25 +114,18 @@ class OllamaApp:
         self.core_manager.show_kb_debug = show_kb_debug
 
     def update_logging_settings(self, logging_enabled, logging_level):
-        """
-        Callback to update logging settings from the front end.
-        :param logging_enabled: Boolean to enable/disable logging.
-        :param logging_level: Integer: 1, 2, or 3.
-        """
         self.core_manager.set_logging_settings(logging_enabled, logging_level)
 
     def attach_image(self, mode):
-        """Callback for image attachment. Opens a file dialog and processes the image using the selected mode."""
         file_path = filedialog.askopenfilename(
             title="Select Image",
             filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.bmp")]
         )
         if file_path:
             if mode == "OCR":
-                caption = self.core_manager.generate_image_text(file_path)
+                return self.core_manager.generate_image_text(file_path)
             else:
-                caption = self.core_manager.generate_image_caption(file_path)
-            return caption
+                return self.core_manager.generate_image_caption(file_path)
         return None
 
 if __name__ == "__main__":

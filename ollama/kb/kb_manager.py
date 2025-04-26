@@ -5,11 +5,11 @@ import shutil
 import datetime
 from local_retriever import build_index_from_folder, save_index, load_index
 
-# Define paths (modify as needed).
+# Define paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-KB_FOLDER = os.path.join(BASE_DIR, "../local_kb")
-INDEX_FILE = os.path.join(BASE_DIR, "../faiss_index.index")
-METADATA_FILE = os.path.join(BASE_DIR, "../kb_documents.json")
+KB_FOLDER = os.path.abspath(os.path.join(BASE_DIR, "../../local_kb"))
+INDEX_FILE = os.path.abspath(os.path.join(BASE_DIR, "../faiss_index.index"))
+METADATA_FILE = os.path.abspath(os.path.join(BASE_DIR, "../kb_documents.json"))
 
 def ensure_kb_folder():
     if not os.path.exists(KB_FOLDER):
@@ -29,10 +29,6 @@ def save_document_metadata(metadata):
         json.dump(metadata, f, indent=4)
 
 def add_file(file_path):
-    """
-    Copies the file into the KB folder and updates metadata.
-    Returns the metadata for the file.
-    """
     ensure_kb_folder()
     filename = os.path.basename(file_path)
     dest_path = os.path.join(KB_FOLDER, filename)
@@ -44,9 +40,6 @@ def add_file(file_path):
     return metadata[dest_path]
 
 def remove_file(file_path):
-    """
-    Removes the file from the KB folder and updates metadata.
-    """
     metadata = load_document_metadata()
     if file_path in metadata:
         os.remove(file_path)
@@ -56,25 +49,33 @@ def remove_file(file_path):
     return False
 
 def rebuild_index():
-    """
-    Rebuilds the FAISS index from all .txt files in the KB folder.
-    Returns the index, chunks, and metadata.
-    """
     ensure_kb_folder()
     index, chunks, meta = build_index_from_folder(KB_FOLDER)
     if index is not None:
         save_index(index, INDEX_FILE)
     return index, chunks, meta
 
+def scan_and_update_kb():
+    ensure_kb_folder()
+    metadata = load_document_metadata()
+    updated = False
+    for fname in os.listdir(KB_FOLDER):
+        fpath = os.path.join(KB_FOLDER, fname)
+        if fpath.endswith(".txt") and fpath not in metadata:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            metadata[fpath] = {"filename": fname, "last_loaded": timestamp}
+            updated = True
+    if updated:
+        save_document_metadata(metadata)
+    return updated
+
 def load_existing_index():
-    """
-    Loads the FAISS index and returns it along with stored chunks and metadata.
-    For production, you might store chunks/metadata persistently as well.
-    Here we simply rebuild if no persistent storage for chunks exists.
-    """
+    ensure_kb_folder()
+    updated = scan_and_update_kb()
+    if updated:
+        return rebuild_index()
     if os.path.exists(INDEX_FILE):
         index = load_index(INDEX_FILE)
-        # For simplicity, rebuild chunks and metadata from the KB folder.
         _, chunks, meta = build_index_from_folder(KB_FOLDER)
         return index, chunks, meta
     else:

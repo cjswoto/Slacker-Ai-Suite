@@ -1,9 +1,9 @@
 # local_retriever.py
+
 import os
 import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
-
 
 def build_index_from_folder(kb_path, chunk_size=100, overlap=20, model_name="all-MiniLM-L6-v2"):
     """
@@ -20,7 +20,6 @@ def build_index_from_folder(kb_path, chunk_size=100, overlap=20, model_name="all
     chunks = []
     metadata = []
 
-    # Process each .txt file in the folder.
     for filename in os.listdir(kb_path):
         if filename.endswith(".txt"):
             file_path = os.path.join(kb_path, filename)
@@ -28,32 +27,26 @@ def build_index_from_folder(kb_path, chunk_size=100, overlap=20, model_name="all
                 text = f.read()
             words = text.split()
             start = 0
-            chunk_index = 0
             while start < len(words):
                 chunk = " ".join(words[start: start + chunk_size])
                 chunks.append(chunk)
-                metadata.append({"filename": filename, "chunk_index": chunk_index})
+                metadata.append({"source": filename})  # ✅ Store source filename
                 start += chunk_size - overlap
-                chunk_index += 1
 
     if not chunks:
-        # No text found.
         return None, [], []
 
-    # Compute embeddings for all chunks.
     embeddings = model.encode(chunks, convert_to_numpy=True)
     dim = embeddings.shape[1]
     index = faiss.IndexFlatL2(dim)
     index.add(embeddings)
     return index, chunks, metadata
 
-
 def save_index(index, index_file_path):
     """
     Saves the FAISS index to disk.
     """
     faiss.write_index(index, index_file_path)
-
 
 def load_index(index_file_path):
     """
@@ -62,7 +55,6 @@ def load_index(index_file_path):
     if os.path.exists(index_file_path):
         return faiss.read_index(index_file_path)
     return None
-
 
 def search_index(query, index, chunks, metadata, top_k=3, model_name="all-MiniLM-L6-v2"):
     """
