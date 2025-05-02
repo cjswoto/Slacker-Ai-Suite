@@ -37,12 +37,11 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("OllamaTrainer")
 
 # Global constant: Directory where the fine-tuned model will be saved
-FINE_TUNED_DIR = "../fine-tuned-model"
+FINE_TUNED_DIR = "./fine-tuned-model"
 
 
 class TokenizedTextDataset(Dataset):
     def __init__(self, hf_dataset, tokenizer, max_length):
-        # Tokenize the 'text' field in the Hugging Face dataset
         self.dataset = hf_dataset.map(
             lambda examples: tokenizer(
                 examples["text"],
@@ -52,7 +51,6 @@ class TokenizedTextDataset(Dataset):
             ),
             batched=True
         )
-        # Set the format to torch so Trainer can use it
         self.dataset.set_format(type="torch", columns=["input_ids", "attention_mask"])
 
     def __len__(self):
@@ -80,9 +78,8 @@ class OllamaTrainerApp:
 
         self.train_file_path = tk.StringVar(value="")
 
-        # Add new variables for evaluation settings
-        self.eval_strategy = tk.StringVar(value="no")  # Default to no evaluation
-        self.eval_split_ratio = tk.DoubleVar(value=0.2)  # 20% default split for validation
+        self.eval_strategy = tk.StringVar(value="no")
+        self.eval_split_ratio = tk.DoubleVar(value=0.2)
 
         self.create_widgets()
 
@@ -124,18 +121,12 @@ class OllamaTrainerApp:
             tb.Label(hp_frame, text=label).grid(row=i, column=0, sticky='w', padx=5, pady=2)
             tb.Entry(hp_frame, textvariable=var, width=8).grid(row=i, column=1, padx=5, pady=2)
 
-        # Evaluation settings frame
         eval_frame = tb.Labelframe(top_frame, text="Evaluation Settings", bootstyle="success")
         eval_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5)
-
-        # Evaluation Strategy Dropdown
         tb.Label(eval_frame, text="Evaluation Strategy:").grid(row=0, column=0, sticky='w', padx=5, pady=2)
-        eval_strategies = ["no", "epoch", "steps"]
         self.eval_strategy_dropdown = tb.Combobox(eval_frame, textvariable=self.eval_strategy,
-                                                  values=eval_strategies, state="readonly")
+                                                  values=["no", "epoch", "steps"], state="readonly")
         self.eval_strategy_dropdown.grid(row=0, column=1, padx=5, pady=2)
-
-        # Validation Split Ratio
         tb.Label(eval_frame, text="Validation Split Ratio:").grid(row=1, column=0, sticky='w', padx=5, pady=2)
         self.eval_split_ratio_entry = tb.Entry(eval_frame, textvariable=self.eval_split_ratio, width=8)
         self.eval_split_ratio_entry.grid(row=1, column=1, padx=5, pady=2)
@@ -163,10 +154,9 @@ class OllamaTrainerApp:
         self.log_box.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
     def browse_file(self):
-        initial_dir = os.path.abspath(os.path.join(os.getcwd(), "../OllamaDataPrep/output"))
+        initial_dir = os.path.abspath(os.path.join(os.getcwd(), "./OllamaDataPrep/output"))
         if not os.path.exists(initial_dir):
             initial_dir = os.getcwd()
-
         file_path = filedialog.askopenfilename(
             initialdir=initial_dir,
             title="Select Training Data",
@@ -175,7 +165,6 @@ class OllamaTrainerApp:
                 ("JSON files", "*.json"),
                 ("Text files", "*.txt")
             ])
-
         if file_path:
             self.train_file_path.set(file_path)
             self.log_message(f"Selected training file: {file_path}")
@@ -195,46 +184,33 @@ class OllamaTrainerApp:
         if not train_file or not os.path.exists(train_file):
             self.log_message("Error: Training file not found.")
             return
-
         self.log_message(f"Loading tokenizer: {self.model_name.get()}")
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name.get())
-
-        # Add padding token if not present
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
             self.log_message("Set padding token to end-of-sequence token")
-
-        # Flexible model loading with multiple quantization strategies
         try:
-            # First, try bitsandbytes 4-bit quantization
-            self.log_message("Attempting 4-bit quantization with bitsandbytes...")
+            self.log_message("Attempting 4-bit quantization with bitsandbytes.")
             quantization_config = BitsAndBytesConfig(
                 load_in_4bit=True,
                 bnb_4bit_compute_dtype=torch.float16,
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_use_double_quant=True
             )
-
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_name.get(),
                 quantization_config=quantization_config,
                 device_map="auto"
             )
-
-            # Prepare model for training
             if prepare_model_for_kbit_training:
                 model = prepare_model_for_kbit_training(model)
         except Exception as e:
             self.log_message(f"4-bit quantization failed: {e}")
-            self.log_message("Falling back to standard model loading...")
-
-            # Fallback to standard model loading
+            self.log_message("Falling back to standard model loading.")
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_name.get(),
                 device_map="auto"
             )
-
-        # Apply LoRA if available
         if get_peft_model and LoraConfig:
             try:
                 lora_config = LoraConfig(
@@ -246,38 +222,26 @@ class OllamaTrainerApp:
                 self.log_message("LoRA configuration applied successfully.")
             except Exception as e:
                 self.log_message(f"LoRA configuration failed: {e}")
-
-        # Load training data
         texts = self._load_training_data(train_file)
         self.log_message(f"Dataset loaded with {len(texts)} examples.")
-
-        # Automatic dataset splitting
         eval_strategy = self.eval_strategy.get()
         if eval_strategy in ["epoch", "steps"]:
-            # Split dataset into training and validation sets
             import random
             random.shuffle(texts)
             split_ratio = self.eval_split_ratio.get()
             split_index = int(len(texts) * (1 - split_ratio))
             train_texts = texts[:split_index]
             eval_texts = texts[split_index:]
-
             self.log_message(
                 f"Automatically split dataset: {len(train_texts)} training examples, {len(eval_texts)} validation examples")
-
-            # Create Hugging Face datasets
             train_hf_dataset = HFDataset.from_dict({"text": train_texts})
             eval_hf_dataset = HFDataset.from_dict({"text": eval_texts})
-
             train_dataset = TokenizedTextDataset(train_hf_dataset, self.tokenizer, self.max_length.get())
             eval_dataset = TokenizedTextDataset(eval_hf_dataset, self.tokenizer, self.max_length.get())
         else:
-            # No evaluation if strategy is "no"
             train_hf_dataset = HFDataset.from_dict({"text": texts})
             train_dataset = TokenizedTextDataset(train_hf_dataset, self.tokenizer, self.max_length.get())
             eval_dataset = None
-
-        # Training arguments
         training_args = TrainingArguments(
             output_dir=FINE_TUNED_DIR,
             per_device_train_batch_size=self.batch_size.get(),
@@ -289,8 +253,6 @@ class OllamaTrainerApp:
             logging_steps=50,
             overwrite_output_dir=True
         )
-
-        # Initialize Trainer
         trainer = Trainer(
             model=model,
             args=training_args,
@@ -298,8 +260,6 @@ class OllamaTrainerApp:
             eval_dataset=eval_dataset,
             data_collator=DataCollatorForLanguageModeling(self.tokenizer, mlm=False)
         )
-
-        # Train the model
         try:
             trainer.train()
             model.save_pretrained(FINE_TUNED_DIR)
@@ -313,20 +273,19 @@ class OllamaTrainerApp:
         try:
             ext = train_file.split('.')[-1].lower()
             with open(train_file, "r", encoding="utf-8") as f:
-                if ext in ['json', 'jsonl']:
-                    if ext == "jsonl":
-                        for line in f:
-                            line = line.strip()
-                            if line:
-                                obj = json.loads(line)
-                                if "text" in obj:
-                                    texts.append(obj["text"])
-                    else:
-                        data = json.load(f)
-                        if isinstance(data, list):
-                            for obj in data:
-                                if isinstance(obj, dict) and "text" in obj:
-                                    texts.append(obj["text"])
+                if ext == "jsonl":
+                    for line in f:
+                        line = line.strip()
+                        if line:
+                            obj = json.loads(line)
+                            if "text" in obj:
+                                texts.append(obj["text"])
+                elif ext == "json":
+                    data = json.load(f)
+                    if isinstance(data, list):
+                        for obj in data:
+                            if isinstance(obj, dict) and "text" in obj:
+                                texts.append(obj["text"])
                 else:
                     texts = [f.read()]
         except Exception as e:

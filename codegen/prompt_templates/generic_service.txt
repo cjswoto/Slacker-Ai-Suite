@@ -1,0 +1,20 @@
+# Prompt Template for Generating a Generic Python Service
+
+Project Name: {project_name}
+Description: {description}
+
+Create a simple Python service with the following file structure:
+{file_list}
+
+Special Notes:
+{special_notes}
+
+Each file should have:
+- Purpose clearly stated at the top
+- Minimal viable code to run without syntax errors
+- Logical organization and modular functions
+
+No unnecessary dependencies unless listed here:
+{dependencies}
+
+Focus on clarity, modularity, and basic functionality.

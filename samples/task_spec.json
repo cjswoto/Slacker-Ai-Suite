@@ -1,0 +1,10 @@
+{
+  "project_name": "Calculator",
+  "description": "A simple calculator program that allows users to perform basic arithmetic operations.",
+  "files": [
+    "calculator_class.py",
+    "gui_class.py",
+    "main.py",
+    "calculatorstate.json"
+  ]
+}

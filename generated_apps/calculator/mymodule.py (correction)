@@ -1,0 +1,7 @@
+from typing import int
+def multiply(a: int, b: int) -> int:
+    """Multiply two numbers."""
+    if b == 0:
+        raise ValueError("Cannot divide by zero")
+    return a * b
+### NOTE:

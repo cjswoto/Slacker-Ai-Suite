@@ -1,0 +1,30 @@
+# Prompt Template for Generating an MCP-Compliant Python Service
+
+Project Name: {project_name}
+Description: {description}
+
+This must be a Model Context Protocol (MCP) compliant JSON-RPC 2.0 server.
+
+Requirements:
+- Implement the following exposed tools:
+{exposed_tools}
+- Implement any resources:
+{exposed_resources}
+- Implement any prompts:
+{exposed_prompts}
+- Load metadata from a settings.json file:
+{metadata}
+
+Special Notes:
+{special_notes}
+
+Create the following files:
+{file_list}
+
+Each file should:
+- Start with a clear docstring stating its purpose
+- Follow MCP standards for JSON-RPC 2.0
+- Include basic server startup and method routing
+
+Only use these dependencies:
+{dependencies}

@@ -1,0 +1,8 @@
+import mymodule
+class Calculator:
+    def __init__(self):
+        pass
+    @staticmethod
+    def multiply(a: int, b: int) -> int:
+        """Multiply two numbers."""
+        return mymodule.multiply(a, b)

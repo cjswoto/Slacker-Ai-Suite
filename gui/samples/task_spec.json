@@ -1,0 +1,17 @@
+{
+  "project_name": "calculator",
+  "description": "A simple calculator app that allows users to perform basic arithmetic operations.",
+  "files": [
+    {
+      "path": "main.py",
+      "purpose": "Implements the main logic of the calculator, including user input and output."
+    },
+    {
+      "path": "utils.py",
+      "purpose": "Contains utility functions for performing calculations, such as adding and subtracting numbers."
+    }
+  ],
+  "dependencies": [
+    "numpy"
+  ]
+}

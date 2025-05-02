@@ -1,0 +1,17 @@
+# config/config.yaml
+
+# Ollama API
+ollama_endpoint: "http://localhost:11434/api/chat"
+model_name: "codellama:latest"
+
+# Retry settings for network calls
+retry_count: 3
+retry_backoff_seconds: 2
+
+# Paths
+paths:
+  tech_schema: "samples/schemas/tech_spec_schema.json"
+  task_schema: "samples/schemas/task_spec_schema.json"
+  tech_spec:  "samples/tech_spec.json"
+  task_spec:  "samples/task_spec.json"
+  last_project_path: "samples/last_project_path.txt"

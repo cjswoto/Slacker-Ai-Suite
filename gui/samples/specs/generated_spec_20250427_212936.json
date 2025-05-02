@@ -1,0 +1,91 @@
+Here's an example of how you could generate a `task_spec.json` file for a simple calculator app:
+```
+{
+  "name": "Calculator",
+  "version": "1.0",
+  "description": "A simple calculator app that allows users to perform basic arithmetic operations.",
+  "tasks": [
+    {
+      "name": "Addition",
+      "description": "Add two numbers together.",
+      "parameters": [
+        {
+          "name": "number1",
+          "type": "number"
+        },
+        {
+          "name": "number2",
+          "type": "number"
+        }
+      ],
+      "results": [
+        {
+          "name": "result",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "Subtraction",
+      "description": "Subtract one number from another.",
+      "parameters": [
+        {
+          "name": "minuend",
+          "type": "number"
+        },
+        {
+          "name": "subtrahend",
+          "type": "number"
+        }
+      ],
+      "results": [
+        {
+          "name": "result",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "Multiplication",
+      "description": "Multiply two numbers together.",
+      "parameters": [
+        {
+          "name": "factor1",
+          "type": "number"
+        },
+        {
+          "name": "factor2",
+          "type": "number"
+        }
+      ],
+      "results": [
+        {
+          "name": "result",
+          "type": "number"
+        }
+      ]
+    },
+    {
+      "name": "Division",
+      "description": "Divide one number by another.",
+      "parameters": [
+        {
+          "name": "dividend",
+          "type": "number"
+        },
+        {
+          "name": "divisor",
+          "type": "number"
+        }
+      ],
+      "results": [
+        {
+          "name": "result",
+          "type": "number"
+        }
+      ]
+    }
+  ]
+}
+```
+This `task_spec.json` file defines a simple calculator app that has four tasks: addition, subtraction, multiplication, and division. Each task takes two parameters (numbers to be operated on) and returns one result (the operation's output). The `name`, `description`, and `parameters` sections are used to define each task's metadata, while the `results` section is used to specify the data that will be returned from each task.

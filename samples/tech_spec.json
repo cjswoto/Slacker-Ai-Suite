@@ -1,0 +1,54 @@
+{
+  "components": {
+    "gui_frontend": {
+      "interfaces": {
+        "calc_interface": {
+          "description": "Interface for interacting with the calculator",
+          "type": "object",
+          "properties": {
+            "input_field": {
+              "type": "string"
+            },
+            "output_field": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "calc_class": {
+        "description": "Class for performing calculations",
+        "type": "object",
+        "properties": {
+          "calculate": {
+            "type": "function",
+            "inputs": [
+              {
+                "name": "input1",
+                "type": "string"
+              },
+              {
+                "name": "input2",
+                "type": "string"
+              }
+            ],
+            "output": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "data_models": {
+    "calc_model": {
+      "description": "Data model for storing calculation results",
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "entry_point": "main.py"
+}

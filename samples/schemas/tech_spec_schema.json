@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TechSpec",
+  "type": "object",
+  "required": [
+    "components",
+    "data_models",
+    "workflows",
+    "dependencies"
+  ],
+  "properties": {
+    "components": {
+      "anyOf": [
+        { "type": "array", "items": { "type": "object" } },
+        { "type": "object" }
+      ]
+    },
+    "data_models": {
+      "anyOf": [
+        { "type": "array", "items": { "type": "object" } },
+        { "type": "object" }
+      ]
+    },
+    "workflows": {
+      "anyOf": [
+        { "type": "array", "items": { "type": "object" } },
+        { "type": "object" }
+      ]
+    },
+    "dependencies": {
+      "anyOf": [
+        {
+          "type": "array",
+          "items": {
+            "anyOf": [
+              { "type": "string" },
+              { "type": "object" }
+            ]
+          }
+        },
+        { "type": "object" }
+      ]
+    },
+    "entry_point": {
+      "type": "string",
+      "pattern": "^.+\\.py$"
+    }
+  },
+  "additionalProperties": false
+}

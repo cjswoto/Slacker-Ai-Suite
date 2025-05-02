@@ -1,0 +1,6 @@
+from calculator import Calculator
+def main() -> None:
+    result = Calculator().multiply(5, 7)
+    print(f"The result is {result}")
+    if __name__ == '__main__':
+        main()
