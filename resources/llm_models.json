@@ -1,0 +1,42 @@
+{
+    "llama3": {
+        "size": "~4GB",
+        "description": "Meta's Llama3 model, good for general use"
+    },
+    "mistral": {
+        "size": "~2GB",
+        "description": "Fast and lightweight open model, best for Q&A and basic reasoning"
+    },
+    "codellama": {
+        "size": "~3GB",
+        "description": "Focused on code understanding and generation, ideal for developers"
+    },
+    "gemma": {
+        "size": "~5GB",
+        "description": "Google’s language model, good mix of speed and comprehension"
+    },
+    "dolphin-mixtral": {
+        "size": "~7GB",
+        "description": "Blend of Dolphin and Mixtral fine-tuning, strong multi-turn reasoning"
+    },
+    "deepseek-coder": {
+        "size": "~6GB",
+        "description": "Code-oriented model tuned for software dev productivity"
+    },
+    "openhermes": {
+        "size": "~5GB",
+        "description": "Open Hermes — general purpose open-weight model"
+    },
+    "zephyr": {
+        "size": "~3GB",
+        "description": "Small, conversational model known for concise replies"
+    },
+    "phi": {
+        "size": "~1.5GB",
+        "description": "Microsoft’s compact model for fast, low-resource environments"
+    },
+    "tinyllama": {
+        "size": "~1GB",
+        "description": "TinyLLaMA is a lightweight model for embedded systems"
+    }
+}
