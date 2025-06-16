@@ -132,7 +132,11 @@ class EndlessAdventureApp:
             "'" + user_input + "'."
         )
         with_search = True  # Enable web search if required by CoreManager.
-        response_data = self.core_manager.generate_response(prompt, with_search=with_search)
+        response_data = self.core_manager.generate_response(
+            prompt,
+            with_search=with_search,
+            with_local_kb=self.core_manager.local_kb_enabled
+        )
         if response_data.get("success"):
             response = response_data.get("ai_response", "")
             self.root.after(0, lambda: self.append_log("📜 " + response))
