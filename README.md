@@ -32,7 +32,7 @@ It features multiple **GUI applications** for user-friendly interaction, alongsi
 
 - **Ollama Setup Wizard** – Simplifies installing and configuring the **Ollama** local AI platform  
 - **Knowledge Base Manager** – Add and manage text documents in a local knowledge base  
-- **Chat Interface** – Interact with local AI models in a user-friendly chat window  
+- **Chat Interface** – Interact with local AI models in a user-friendly chat window, with optional knowledge-base context
 - **PDF Tools** – Convert PDF text into training data, or extract images from PDFs  
 - **Model Trainer** – Fine-tune models with LoRA, quantization, and more  
 - **Session Management** – Save and restore conversation data, track logs  

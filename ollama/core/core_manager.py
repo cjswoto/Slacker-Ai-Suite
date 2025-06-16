@@ -42,6 +42,7 @@ class CoreManager:
         self.kb_debug_info = ""
         self.show_web_debug = False
         self.show_kb_debug = False
+        self.local_kb_enabled = True
 
         self.current_session = None
         self.sessions = session_manager.load_sessions()
@@ -125,7 +126,8 @@ class CoreManager:
             except Exception as e:
                 self._log(f"Web search error: {e}", 1)
 
-        if with_local_kb:
+        use_kb = with_local_kb and self.local_kb_enabled
+        if use_kb:
             try:
                 selected_chunks, kb_debug_info = self.kb_helper.search_kb(message, top_k=self.kb_top_k)
                 local_results = "\n".join(selected_chunks)
