@@ -67,7 +67,11 @@ class OllamaApp:
     def process_message(self, user_input):
         self.chat_interface.start_progress_indicator("Generating response")
         def task():
-            response_data = self.core_manager.generate_response(user_input, with_search=True)
+            response_data = self.core_manager.generate_response(
+                user_input,
+                with_search=True,
+                with_local_kb=self.core_manager.local_kb_enabled
+            )
             if response_data.get("success"):
                 ai_resp = response_data.get("ai_response", "")
                 self.root.after(0, lambda: self.chat_interface.display_message("🤖 AI", ai_resp, tag="ai"))
@@ -108,10 +112,11 @@ class OllamaApp:
         # Lock display again
         self.chat_interface.chat_display.config(state=tk.DISABLED)
 
-    def update_search_settings(self, web_search_enabled, show_web_debug, show_kb_debug):
+    def update_search_settings(self, web_search_enabled, show_web_debug, show_kb_debug, use_local_kb):
         self.core_manager.web_search_enabled = web_search_enabled
         self.core_manager.show_web_debug = show_web_debug
         self.core_manager.show_kb_debug = show_kb_debug
+        self.core_manager.local_kb_enabled = use_local_kb
 
     def update_logging_settings(self, logging_enabled, logging_level):
         self.core_manager.set_logging_settings(logging_enabled, logging_level)

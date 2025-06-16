@@ -15,7 +15,7 @@ class ChatInterface:
         :param parent: The parent widget/frame.
         :param on_send_callback: function(user_text) -> None.
         :param on_new_session_callback: function() -> None.
-        :param on_update_search_settings_callback: function(bool, bool, bool) -> None.
+        :param on_update_search_settings_callback: function(bool, bool, bool, bool) -> None.
         :param on_update_logging_settings_callback: function(bool, int) -> None.
         :param on_attach_image_callback: function(mode) -> image_text (string) or None.
         """
@@ -31,6 +31,7 @@ class ChatInterface:
         self.web_search_enabled = tk.BooleanVar(value=True)
         self.show_web_debug = tk.BooleanVar(value=False)
         self.show_kb_debug = tk.BooleanVar(value=False)
+        self.use_local_kb = tk.BooleanVar(value=True)
 
         # New variables for logging settings using numeric values.
         self.logging_enabled = tk.BooleanVar(value=True)
@@ -98,6 +99,15 @@ class ChatInterface:
             command=self.update_search_settings
         )
         self.web_search_checkbox.pack(side=tk.LEFT)
+
+        self.local_kb_checkbox = ttk.Checkbutton(
+            button_frame,
+            text="Use Local KB",
+            variable=self.use_local_kb,
+            style="success.TCheckbutton",
+            command=self.update_search_settings
+        )
+        self.local_kb_checkbox.pack(side=tk.LEFT, padx=10)
 
         self.web_debug_checkbox = ttk.Checkbutton(
             button_frame,
@@ -174,7 +184,8 @@ class ChatInterface:
         self.on_update_search_settings_callback(
             self.web_search_enabled.get(),
             self.show_web_debug.get(),
-            self.show_kb_debug.get()
+            self.show_kb_debug.get(),
+            self.use_local_kb.get()
         )
 
     def update_logging_settings(self):
